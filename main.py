@@ -1,5 +1,4 @@
-from flask import Flask, request
-from flask import Flask, jsonify, render_template, request, send_from_directory
+from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
@@ -8,25 +7,32 @@ def home():
     return render_template('index.html')
 
 
-@app.route('/calculator', methods = ['POST'])
+@app.route('/calculator', methods=['POST'])
 def calculator():
-    data = request.form
-    x = eval(data['x'])
-    y = eval(data['y'])
-    operation = data['operation']
-    if operation == 'addition':
-        result = x + y
-    
-    elif operation == 'multiplication':
-        result = x * y
+    try:
+        data = request.form
+        x = float(data['x'])  # safer than eval
+        y = float(data['y'])
+        operation = data['operation']
 
-    elif operation == 'substraction':
-        result = x - y
+        if operation == 'addition':
+            result = x + y
+        elif operation == 'subtraction':  # corrected spelling
+            result = x - y
+        elif operation == 'multiplication':
+            result = x * y
+        elif operation == 'division':
+            if y == 0:
+                return jsonify({"status": "error", "message": "Cannot divide by zero"})
+            result = x / y
+        else:
+            return jsonify({"status": "error", "message": "Invalid operation"})
 
-    elif operation == 'division':
-        result = x / y
-    
-    return jsonify({"status": "success", "result":result})
+        return jsonify({"status": "success", "result": result})
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
 
 if __name__ == "__main__":
-    app.run(host = "0.0.0.0", port = 5000)
+    app.run(host="0.0.0.0", port=5000)
